@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title></title>
+    <meta name="viewport" content="width=device-width">
+    <style>
+      body {
+        background-color: #2E2D2E;
+        text-align: center;
+        padding: 50px 0;
+      }
+      canvas {
+        display: block;
+        margin: 10px auto 0;
+        border: 1px solid #eee;
+        background-color: #fff;
+        box-shadow: 0 0 5px rgba(0,0,0,0.75);
+      }
+    </style>
+  </head>
+
+  <body onload="App.init();">
+    <!-- <button onclick="App.play();"> Play </button> -->
+    <!-- <button onclick="App.pause();"> Pause </button> -->
+
+    <canvas id="canvas" width="640" height="860">
+      <p> Please update your browser </p>
+    </canvas>
+
+    <script src="js/lib/rAF.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
