@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title> Image Processing </title>
+    <meta name="viewport" content="width=device-width">
+    <link rel="stylesheet" href="/css/app.css">
+  </head>
+
+  <body onload="App.init();">
+
+    <h1> Image Processing </h1>
+    <a href="/"> Back </a>
+
+    <canvas id="canvas" width="640" height="640">
+      <p> Please update your browser </p>
+    </canvas>
+
+    <div class="controls">
+      <button onclick="App.processImage( 'none' );"> Original </button>
+      <button onclick="App.processImage( 'bw1' );"> Black + White 1 </button>
+      <button onclick="App.processImage( 'bw2' );"> Black + White 2 </button>
+      <button onclick="App.processImage( 'bw3' );"> Black + White 3 </button>
+      <button onclick="App.processImage( 'invert' );"> Invert </button>
+      <button onclick="App.processImage( 'opacity' );"> Reduce Opacity </button>
+      <button onclick="App.processImage( 'crop' );"> Crop </button>
+    </div>
+
+    <script>
+    window.App = {};
+
+    App.init = function() {
+      var self = this;
+
+      this.canvas = document.getElementById( 'canvas' );
+      this.ctx    = canvas.getContext( '2d' );
+      this.width  = canvas.width;
+      this.height = canvas.height;
+      this.animId = null;
+      this.moveHandler = null;
+      this.upHandler = null;
+      this.shapeList = [];
+
+      this.imageObj = new Image();
+      this.imageObj.src = '/img/ryan-1.jpg';
+      this.imageObj.onload = function() {
+        self.renderImage( self.ctx, self.imageObj );
+      };
+    };
+
+    App.clearCanvas = function() {
+      this.ctx.clearRect( 0, 0, this.width, this.height );
+    };
+
+    App.processImage = function( filter ) {
+      switch( filter ) {
+        case 'bw1':
+        case 'bw2':
+        case 'bw3':
+        case 'invert':
+        case 'opacity':
+        case 'crop':
+          App.renderImage( this.ctx, this.imageObj, filter );
+          break;
+        case 'none':
+        default:
+          App.renderImage( this.ctx, this.imageObj );
+          break;
+      }
+    };
+
+    App.renderImage = function( ctx, imageObj, filter ) {
+      App.clearCanvas();
+
+      // Just draw the image
+      ctx.drawImage( imageObj, 10, 10, canvas.width - 20, canvas.height - 20 );
+
+      if ( typeof filter != 'undefined' ) {
+
+        var imageData = ctx.getImageData(
+          10, 10, canvas.width - 20, canvas.height - 20
+        );
+        var data = imageData.data;
+        // console.log( data );
+
+        switch( filter ) {
+          case 'bw1':
+            App.bw1Image( data );
+            ctx.putImageData( imageData, 10, 10 );
+            break;
+          case 'bw2':
+            App.bw2Image( data );
+            ctx.putImageData( imageData, 10, 10 );
+            break;
+          case 'bw3':
+            App.bw3Image( data );
+            ctx.putImageData( imageData, 10, 10 );
+            break;
+          case 'invert':
+            App.invertImage( data );
+            ctx.putImageData( imageData, 10, 10 );
+            break;
+          case 'opacity':
+            App.changeOpacity( data, 0.5 );
+            ctx.putImageData( imageData, 10, 10 );
+            break;
+          case 'crop':
+            App.cropImage();
+            break;
+        }
+      }
+
+      // var dataURL = this.canvas.toDataURL();
+      // imageObj.src = dataURL;
+      // console.log( dataURL );
+    };
+
+    App.cropImage = function() {
+      var sourceX      = this.imageObj.width / 4;
+      var sourceY      = this.imageObj.height / 4;
+      var sourceWidth  = this.imageObj.width / 2;
+      var sourceHeight = this.imageObj.height / 2;
+      var destWidth    = sourceWidth;
+      var destHeight   = sourceHeight;
+      var destX        = canvas.width / 2 - destWidth / 2;
+      var destY        = canvas.height / 2 - destHeight / 2;
+
+      App.clearCanvas();
+      this.ctx.drawImage(
+        this.imageObj,
+        sourceX, sourceY, sourceWidth, sourceHeight,
+        destX, destY, destWidth, destHeight
+      );
+    };
+
+    App.invertImage = function( data ) {
+      for ( var i = 0; i < data.length; i += 4 ) {
+        // red
+        data[i + 0] = 255 - data[i];
+
+        // green
+        data[i + 1] = 255 - data[i + 1];
+
+        // blue
+        data[i + 2] = 255 - data[i + 2];
+      }
+    };
+
+    App.bw1Image = function( data ) {
+      for ( var i = 0; i < data.length; i += 4 ) {
+
+        // https://code.tutsplus.com/courses/canvas-essentials/lessons/images
+        var brightness = 0.34 * data[i] + 0.5 * data[i + 1] + 0.16 * data[i + 2];
+
+        // red
+        data[i + 0] = brightness;
+
+        // green
+        data[i + 1] = brightness;
+
+        // blue
+        data[i + 2] = brightness;
+      }
+    };
+
+    App.bw2Image = function( data ) {
+      for ( var i = 0; i < data.length; i += 4 ) {
+
+        // http://stackoverflow.com/questions/596216/formula-to-determine-brightness-of-rgb-color
+        var brightness = Math.sqrt( 0.299 * Math.pow( data[i], 2) + 0.587 * Math.pow( data[i + 1], 2 ) + 0.114 * Math.pow( data[i + 2], 2 ) );
+
+        // red
+        data[i + 0] = brightness;
+
+        // green
+        data[i + 1] = brightness;
+
+        // blue
+        data[i + 2] = brightness;
+      }
+    };
+
+    App.bw3Image = function( data ) {
+      for ( var i = 0; i < data.length; i += 4 ) {
+
+        // http://www.nbdtech.com/Blog/archive/2008/04/27/Calculating-the-Perceived-Brightness-of-a-Color.aspx
+        var brightness = Math.sqrt( 0.241 * Math.pow( data[i], 2) + 0.691 * Math.pow( data[i + 1], 2 ) + 0.068 * Math.pow( data[i + 2], 2 ) );
+
+        // red
+        data[i + 0] = brightness;
+
+        // green
+        data[i + 1] = brightness;
+
+        // blue
+        data[i + 2] = brightness;
+      }
+    };
+
+    App.changeOpacity = function( data, opacity ) {
+      for ( var i = 0; i < data.length; i += 4 ) {
+        // opacity
+        data[i + 3] = 255 * opacity;
+      }
+    };
+    </script>
+    
+  </body>
+</html>
