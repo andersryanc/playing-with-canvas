@@ -18,6 +18,8 @@
     <div class="controls">
       <button onclick="App.play();"> Play </button>
       <button onclick="App.pause();"> Pause </button>
+      <button onclick="App.clearCanvas();"> Clear Canvas </button>
+      <button onclick="App.clearShapeList();"> Clear Shapes </button>
     </div>
 
     <script src="../js/lib/rAF.js"></script>
@@ -37,7 +39,7 @@
       this.shapeList = [];
 
       this.canvas.onclick = function( e ) {
-        self.clearCanvas();
+        // self.clearCanvas();
 
         var square = new App.Square(
           e.offsetX, e.offsetY, 40, self.ctx
@@ -48,6 +50,11 @@
 
       this.generateRandomSquares();
       this.animate();
+    };
+
+    App.clearShapeList = function() {
+      this.shapeList = [];
+      this.clearCanvas();
     };
 
     App.generateRandomSquares = function() {
